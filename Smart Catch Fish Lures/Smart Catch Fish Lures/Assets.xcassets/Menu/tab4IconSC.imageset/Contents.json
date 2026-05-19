@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "tab4IconSC.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
