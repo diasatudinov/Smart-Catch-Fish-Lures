@@ -1,17 +1,13 @@
+//
+//  SmartCatchApp.swift
+//  Smart Catch Fish Lures
+//
+//
+
+
 import SwiftUI
 import PhotosUI
 import UIKit
-
-// MARK: - App
-
-@main
-struct SmartCatchApp: App {
-    var body: some Scene {
-        WindowGroup {
-            SmartCatchRootView()
-        }
-    }
-}
 
 // MARK: - Models
 
@@ -20,7 +16,7 @@ enum WeatherCondition: String, CaseIterable, Identifiable, Codable {
     case cloudy = "Cloudy"
     case rain = "Rain"
     case foggy = "Foggy"
-    case windy = "Windy"
+    case snow = "Snow"
 
     var id: String { rawValue }
 
@@ -30,7 +26,7 @@ enum WeatherCondition: String, CaseIterable, Identifiable, Codable {
         case .cloudy: return "cloud"
         case .rain: return "cloud.rain"
         case .foggy: return "cloud.fog"
-        case .windy: return "wind"
+        case .snow: return "snowflake"
         }
     }
 }
@@ -338,63 +334,48 @@ final class SmartCatchViewModel: ObservableObject {
     }
 }
 
-// MARK: - Root
-
-struct SmartCatchRootView: View {
-    @StateObject private var viewModel = SmartCatchViewModel()
-
-    var body: some View {
-        TabView {
-            CatchLogView(viewModel: viewModel)
-                .tabItem {
-                    Label("Catch Log", systemImage: "house")
-                }
-
-            TackleBoxView(viewModel: viewModel)
-                .tabItem {
-                    Label("My Box", systemImage: "shippingbox")
-                }
-
-            SmartAdvisorView(viewModel: viewModel)
-                .tabItem {
-                    Label("Advisor", systemImage: "sparkles")
-                }
-
-            AnalyticsView(viewModel: viewModel)
-                .tabItem {
-                    Label("Analytics", systemImage: "chart.bar")
-                }
-
-            ProfileView(viewModel: viewModel)
-                .tabItem {
-                    Label("Profile", systemImage: "person")
-                }
-        }
-        .tint(.cyan)
-    }
-}
 
 // MARK: - Catch Log
 
 struct CatchLogView: View {
     @ObservedObject var viewModel: SmartCatchViewModel
-    @State private var showNewCatch = false
+    @State private var showNewCatch = true
 
     var body: some View {
         NavigationStack {
             ZStack {
                 AppBackground()
-
+                
+                VStack {
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text("Good Morning, Angler")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundStyle(.white)
+                            Text("Let's catch something amazing")
+                                .font(.system(size: 16, weight: .regular))
+                                .foregroundStyle(.white.opacity(0.6))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        Image(.catchIconSC)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 48)
+                    }
+                    .padding(.horizontal)
+                    
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         HStack {
                             StatCard(title: "Fish Caught", value: "\(viewModel.totalCatches)")
                             StatCard(title: "kg Total", value: oneDigit(viewModel.totalWeight))
                         }
-
+                        
                         Text("Recent Catches")
-                            .font(.headline)
-
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundStyle(.white)
+                        
                         if viewModel.catches.isEmpty {
                             EmptyStateView(
                                 title: "No catches yet",
@@ -404,40 +385,42 @@ struct CatchLogView: View {
                             ForEach(viewModel.catches) { catchRecord in
                                 NavigationLink {
                                     CatchDetailsView(catchRecord: catchRecord, viewModel: viewModel)
+                                        .navigationBarBackButtonHidden()
                                 } label: {
                                     CatchCard(catchRecord: catchRecord)
                                 }
                                 .buttonStyle(.plain)
                             }
                         }
-                    }
-                    .padding()
-                }
-
-                VStack {
-                    Spacer()
-
-                    Button {
-                        showNewCatch = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "plus")
-                            Text("Got it!")
-                                .fontWeight(.bold)
+                        
+                        NavigationLink {
+                            NewCatchView(viewModel: viewModel)
+                                .navigationBarBackButtonHidden()
+                        } label: {
+                            HStack {
+                                Image(systemName: "plus")
+                                Spacer()
+                                Text("Got it!")
+                                    .fontWeight(.bold)
+                                Spacer()
+                                Image(systemName: "plus")
+                            }
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.cyan)
+                            .clipShape(RoundedRectangle(cornerRadius: 50))
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.cyan)
-                        .foregroundColor(.black)
-                        .clipShape(RoundedRectangle(cornerRadius: 18))
+
                     }
                     .padding()
+                    .padding(.bottom, 150)
                 }
+                
             }
-            .navigationTitle("Catch Log")
-            .sheet(isPresented: $showNewCatch) {
-                NewCatchView(viewModel: viewModel)
             }
+            
         }
     }
 }
@@ -447,27 +430,30 @@ struct CatchCard: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            AppImageView(data: catchRecord.imageData, placeholder: "fish", size: 58)
+            AppImageView(data: catchRecord.imageData, placeholder: "fish", size: 58, showText: false)
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(catchRecord.fishName)
-                    .font(.headline)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(.white)
 
                 Text("\(oneDigit(catchRecord.weightKg)) kg • \(Int(catchRecord.lengthCm)) cm")
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundStyle(.white.opacity(0.7))
 
                 Text(catchRecord.lureNameSnapshot)
-                    .font(.caption)
-                    .foregroundColor(.cyan)
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundStyle(.white.opacity(0.6))
             }
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 6) {
+            VStack(alignment: .trailing, spacing: 30) {
                 Image(systemName: catchRecord.weather.icon)
+                    .foregroundStyle(.tabAccent)
                 Text(shortDate(catchRecord.date))
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundStyle(.white.opacity(0.6))
             }
         }
         .padding()
@@ -477,6 +463,7 @@ struct CatchCard: View {
 }
 
 struct CatchDetailsView: View {
+    @Environment(\.dismiss) private var dismiss
     let catchRecord: CatchRecord
     @ObservedObject var viewModel: SmartCatchViewModel
 
@@ -484,61 +471,81 @@ struct CatchDetailsView: View {
         ZStack {
             AppBackground()
 
-            ScrollView {
-                VStack(spacing: 18) {
-                    AppImageView(data: catchRecord.imageData, placeholder: "fish", size: 180)
-
-                    Text(catchRecord.fishName)
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-
-                    Text(longDate(catchRecord.date))
-                        .foregroundColor(.secondary)
-
+            VStack {
+                
+                Button {
+                    dismiss()
+                } label: {
                     HStack {
-                        StatCard(title: "kg", value: oneDigit(catchRecord.weightKg))
-                        StatCard(title: "cm", value: "\(Int(catchRecord.lengthCm))")
+                        Image(systemName: "arrow.left")
+                            .font(.system(size: 24, weight: .bold))
+                        Text("Catch Details")
+                            .font(.system(size: 24, weight: .bold))
+                            
                     }
-
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Conditions")
-                            .font(.headline)
-
-                        InfoRow(
-                            icon: catchRecord.weather.icon,
-                            title: catchRecord.weather.rawValue,
-                            subtitle: "Weather"
-                        )
-
-                        InfoRow(
-                            icon: "thermometer",
-                            title: "\(catchRecord.temperatureC)°C",
-                            subtitle: "Temperature"
-                        )
-                    }
-                    .padding()
-                    .background(Color.white.opacity(0.08))
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
-
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Successful Lure")
-                            .font(.headline)
-
-                        InfoRow(
-                            icon: "scope",
-                            title: catchRecord.lureNameSnapshot,
-                            subtitle: "Used lure"
-                        )
-                    }
-                    .padding()
-                    .background(Color.cyan.opacity(0.15))
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .foregroundStyle(.white)
+                    
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
+                
+                ScrollView {
+                    VStack(spacing: 18) {
+                        AppImageView(data: catchRecord.imageData, placeholder: "fish", size: 180)
+                        
+                        Text(catchRecord.fishName)
+                            .font(.system(size: 30, weight: .bold))
+                            .foregroundStyle(.white)
+                        
+                        Text(longDate(catchRecord.date))
+                            .font(.system(size: 16, weight: .regular))
+                            .foregroundStyle(.white.opacity(0.6))
+                        
+                        HStack {
+                            StatCard(title: "kg", value: oneDigit(catchRecord.weightKg))
+                            StatCard(title: "cm", value: "\(Int(catchRecord.lengthCm))")
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Conditions")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundStyle(.white)
+                            
+                            InfoRow(
+                                icon: catchRecord.weather.icon,
+                                title: catchRecord.weather.rawValue,
+                                subtitle: "Weather"
+                            )
+                            
+                            InfoRow(
+                                icon: "thermometer",
+                                title: "\(catchRecord.temperatureC)°C",
+                                subtitle: "Temperature"
+                            )
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Successful Lure")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundStyle(.white)
+                            
+                            InfoRow(
+                                icon: "scope",
+                                title: catchRecord.lureNameSnapshot,
+                                subtitle: "Used lure"
+                            )
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                    }
+                    .padding()
+                }
             }
         }
-        .navigationTitle("Catch Details")
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -572,111 +579,158 @@ struct NewCatchView: View {
             ZStack {
                 AppBackground()
 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        PhotoPickerView(imageData: $imageData)
-
-                        SectionTitle("Fish Type")
-
-                        Picker("Fish", selection: $fishName) {
-                            ForEach(viewModel.fishBase, id: \.self) { fish in
-                                Text(fish).tag(fish)
-                            }
+                VStack {
+                    Button {
+                        dismiss()
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.left")
+                                .font(.system(size: 24, weight: .bold))
+                            Text("New Catch")
+                                .font(.system(size: 24, weight: .bold))
+                                
                         }
-                        .pickerStyle(.menu)
-
-                        Toggle("Custom fish name", isOn: $useCustomFish)
-
-                        if useCustomFish {
-                            TextField("Type fish name", text: $customFishName)
-                                .textFieldStyle(.roundedBorder)
-                        }
-
-                        SectionTitle("Weight: \(oneDigit(weightKg)) kg")
-                        Slider(value: $weightKg, in: 0.1...30, step: 0.1)
-
-                        SectionTitle("Length: \(Int(lengthCm)) cm")
-                        Slider(value: $lengthCm, in: 5...250, step: 1)
-
-                        SectionTitle("Weather")
-
-                        ChipGrid(
-                            items: WeatherCondition.allCases.map { $0.rawValue },
-                            selected: weather.rawValue
-                        ) { value in
-                            weather = WeatherCondition(rawValue: value) ?? .cloudy
-                        }
-
-                        SectionTitle("Temperature: \(Int(temperatureC))°C")
-                        Slider(value: $temperatureC, in: -20...45, step: 1)
-
-                        SectionTitle("Used Lure")
-
-                        if viewModel.lures.isEmpty {
-                            EmptyStateView(
-                                title: "No lures",
-                                subtitle: "Add lure in My Box first."
-                            )
-                        } else {
-                            ForEach(viewModel.lures) { lure in
-                                Button {
-                                    selectedLureID = lure.id
-                                } label: {
-                                    HStack {
-                                        AppImageView(data: lure.imageData, placeholder: "scope", size: 46)
-
-                                        VStack(alignment: .leading) {
-                                            Text(lure.name)
-                                                .font(.headline)
-                                            Text("\(lure.category.rawValue) • \(oneDigit(lure.weightGrams))g")
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        }
-
-                                        Spacer()
-
-                                        if selectedLureID == lure.id {
-                                            Image(systemName: "checkmark.circle.fill")
-                                                .foregroundColor(.cyan)
-                                        }
-                                    }
-                                    .padding()
-                                    .background(Color.white.opacity(selectedLureID == lure.id ? 0.16 : 0.08))
-                                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-
-                        Button {
-                            guard let lure = selectedLure else { return }
-
-                            viewModel.addCatch(
-                                fishName: finalFishName,
-                                weightKg: weightKg,
-                                lengthCm: lengthCm,
-                                weather: weather,
-                                temperatureC: Int(temperatureC),
-                                lure: lure,
-                                imageData: imageData
-                            )
-
-                            dismiss()
-                        } label: {
-                            Text("Save Trophy")
-                                .fontWeight(.bold)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(selectedLure == nil ? Color.gray : Color.cyan)
-                                .foregroundColor(.black)
-                                .clipShape(RoundedRectangle(cornerRadius: 18))
-                        }
-                        .disabled(selectedLure == nil || finalFishName.trimmingCharacters(in: .whitespaces).isEmpty)
+                        .foregroundStyle(.white)
+                        
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
+                    
+                    
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 20) {
+                            SectionTitle("Photo")
+                            PhotoPickerView(imageData: $imageData)
+                            
+                            SectionTitle("Fish Type")
+                            
+                            let columns = Array(repeating: GridItem(.flexible(), spacing: 20), count: 3)
+                            
+                            LazyVGrid(columns: columns, spacing: 8) {
+                                ForEach(viewModel.fishBase, id: \.self) { fish in
+                                    Text(fish)
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundStyle(fishName == fish ? .tabAccent: .white.opacity(0.7))
+                                        .padding(.vertical, 12)
+                                        .frame(maxWidth: .infinity, alignment: .center)
+                                        .background(fishName == fish ? .tabAccent.opacity(0.2) : .white.opacity(0.1))
+                                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                                        .overlay(content: {
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .stroke(lineWidth: 1)
+                                                .foregroundStyle(fishName == fish ? .tabAccent : .white.opacity(0.2))
+                                        })
+                                        .onTapGesture {
+                                            fishName = fish
+                                        }
+                                }
+                            }
+                            
+                            Toggle("Custom fish name", isOn: $useCustomFish)
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(.white.opacity(0.8))
+                            
+                            if useCustomFish {
+                                TextField("Type fish name", text: $customFishName)
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(.white)
+                                    .padding(12)
+                                    .background(.white.opacity(0.1))
+                                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                                    .overlay(content: {
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .stroke(lineWidth: 1)
+                                            .foregroundStyle(.white.opacity(0.2))
+                                    })
+                                
+                            }
+                            
+                            SectionTitle("Weight: \(oneDigit(weightKg)) kg")
+                            Slider(value: $weightKg, in: 0.1...30, step: 0.1)
+                            
+                            SectionTitle("Length: \(Int(lengthCm)) cm")
+                            Slider(value: $lengthCm, in: 5...250, step: 1)
+                            
+                            SectionTitle("Weather")
+                            
+                            ChipGrid(
+                                items: WeatherCondition.allCases.map { $0.rawValue },
+                                selected: weather.rawValue
+                            ) { value in
+                                weather = WeatherCondition(rawValue: value) ?? .cloudy
+                            }
+                            
+                            SectionTitle("Temperature: \(Int(temperatureC))°C")
+                            Slider(value: $temperatureC, in: -20...45, step: 1)
+                            
+                            SectionTitle("Used Lure")
+                            
+                            if viewModel.lures.isEmpty {
+                                EmptyStateView(
+                                    title: "No lures",
+                                    subtitle: "Add lure in My Box first."
+                                )
+                            } else {
+                                ForEach(viewModel.lures) { lure in
+                                    Button {
+                                        selectedLureID = lure.id
+                                    } label: {
+                                        HStack {
+                                            AppImageView(data: lure.imageData, placeholder: "scope", size: 46, showText: false)
+                                            
+                                            VStack(alignment: .leading) {
+                                                Text(lure.name)
+                                                    .font(.headline)
+                                                    .foregroundStyle(.white)
+                                                Text("\(lure.category.rawValue) • \(oneDigit(lure.weightGrams))g")
+                                                    .font(.caption)
+                                                    .foregroundStyle(.white.opacity(0.6))
+                                            }
+                                            
+                                            Spacer()
+                                            
+                                            if selectedLureID == lure.id {
+                                                Image(systemName: "checkmark.circle.fill")
+                                                    .foregroundColor(.cyan)
+                                            }
+                                        }
+                                        .padding()
+                                        .background(Color.white.opacity(selectedLureID == lure.id ? 0.16 : 0.08))
+                                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            
+                            Button {
+                                guard let lure = selectedLure else { return }
+                                
+                                viewModel.addCatch(
+                                    fishName: finalFishName,
+                                    weightKg: weightKg,
+                                    lengthCm: lengthCm,
+                                    weather: weather,
+                                    temperatureC: Int(temperatureC),
+                                    lure: lure,
+                                    imageData: imageData
+                                )
+                                
+                                dismiss()
+                            } label: {
+                                Text("Save Trophy")
+                                    .fontWeight(.bold)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(selectedLure == nil ? Color.gray : Color.tabAccent)
+                                    .foregroundColor(.black)
+                                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                            }
+                            .disabled(selectedLure == nil || finalFishName.trimmingCharacters(in: .whitespaces).isEmpty)
+                        }
+                        .padding()
+                    }
                 }
             }
-            .navigationTitle("New Catch")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
@@ -707,63 +761,82 @@ struct TackleBoxView: View {
             ZStack {
                 AppBackground()
 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack {
-                                CategoryChip(
-                                    title: "All",
-                                    isSelected: selectedCategory == nil
-                                ) {
-                                    selectedCategory = nil
-                                }
-
-                                ForEach(LureCategory.allCases) { category in
-                                    CategoryChip(
-                                        title: category.rawValue,
-                                        isSelected: selectedCategory == category
-                                    ) {
-                                        selectedCategory = category
-                                    }
-                                }
-                            }
+                VStack {
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text("My Tackle Box")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundStyle(.white)
+                            Text("Manage your lure inventory")
+                                .font(.system(size: 16, weight: .regular))
+                                .foregroundStyle(.white.opacity(0.6))
                         }
-
-                        LazyVGrid(columns: columns, spacing: 14) {
-                            ForEach(filteredLures) { lure in
-                                LureCard(
-                                    lure: lure,
-                                    successCount: viewModel.successCount(for: lure.id)
-                                )
-                            }
-
-                            Button {
-                                showAddLure = true
-                            } label: {
-                                VStack(spacing: 10) {
-                                    Image(systemName: "plus.circle.fill")
-                                        .font(.title)
-                                    Text("Add Lure")
-                                }
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 160)
-                                .background(Color.white.opacity(0.06))
-                                .clipShape(RoundedRectangle(cornerRadius: 18))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 18)
-                                        .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [6]))
-                                        .foregroundColor(.cyan.opacity(0.6))
-                                )
-                            }
-                            .buttonStyle(.plain)
-                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        
                     }
-                    .padding()
+                    .padding(.horizontal)
+                    
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack {
+                            CategoryChip(
+                                title: "All",
+                                isSelected: selectedCategory == nil
+                            ) {
+                                selectedCategory = nil
+                            }
+                            
+                            ForEach(LureCategory.allCases) { category in
+                                CategoryChip(
+                                    title: category.rawValue,
+                                    isSelected: selectedCategory == category
+                                ) {
+                                    selectedCategory = category
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                    
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 16) {
+                            
+                            LazyVGrid(columns: columns, spacing: 14) {
+                                ForEach(filteredLures) { lure in
+                                    LureCard(
+                                        lure: lure,
+                                        successCount: viewModel.successCount(for: lure.id)
+                                    )
+                                }
+                                
+                                NavigationLink {
+                                    AddLureView(viewModel: viewModel)
+                                        .navigationBarBackButtonHidden()
+                                } label: {
+                                    VStack(spacing: 10) {
+                                        Image(systemName: "plus.circle.fill")
+                                            .font(.title)
+                                            .foregroundStyle(.tabAccent)
+                                        Text("Add Lure")
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .foregroundStyle(.white.opacity(0.7))
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 160)
+                                    .background(Color.white.opacity(0.06))
+                                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 18)
+                                            .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [6]))
+                                            .foregroundColor(.cyan.opacity(0.6))
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding()
+                        .padding(.bottom, 150)
+                    }
                 }
-            }
-            .navigationTitle("My Tackle Box")
-            .sheet(isPresented: $showAddLure) {
-                AddLureView(viewModel: viewModel)
             }
         }
     }
@@ -775,15 +848,17 @@ struct LureCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            AppImageView(data: lure.imageData, placeholder: "scope", size: 70)
+            AppImageView(data: lure.imageData, placeholder: "scope", size: 100, showText: false)
+                .frame(maxWidth: .infinity, alignment: .center)
 
             Text(lure.name)
-                .font(.headline)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.white)
                 .lineLimit(1)
 
             Text(lure.color)
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .font(.system(size: 14, weight: .regular))
+                .foregroundStyle(.white.opacity(0.7))
 
             HStack {
                 Text("\(oneDigit(lure.weightGrams))g")
@@ -791,7 +866,7 @@ struct LureCard: View {
                 Text("\(successCount) caught")
             }
             .font(.caption)
-            .foregroundColor(.cyan)
+            .foregroundColor(.tabAccent)
         }
         .padding()
         .frame(maxWidth: .infinity, minHeight: 160, alignment: .leading)
@@ -815,54 +890,89 @@ struct AddLureView: View {
             ZStack {
                 AppBackground()
 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 18) {
-                        PhotoPickerView(imageData: $imageData)
-
-                        SectionTitle("Tackle")
-                        Picker("Category", selection: $category) {
-                            ForEach(LureCategory.allCases) { category in
-                                Text(category.rawValue).tag(category)
-                            }
+                VStack {
+                    Button {
+                        dismiss()
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.left")
+                                .font(.system(size: 24, weight: .bold))
+                            Text("New Catch")
+                                .font(.system(size: 24, weight: .bold))
+                            
                         }
-                        .pickerStyle(.segmented)
-
-                        SectionTitle("Name and Color")
-                        TextField("Name", text: $name)
-                            .textFieldStyle(.roundedBorder)
-
-                        TextField("Color", text: $color)
-                            .textFieldStyle(.roundedBorder)
-
-                        SectionTitle("Weight: \(oneDigit(weightGrams))g")
-                        Slider(value: $weightGrams, in: 1...80, step: 1)
-
-                        Button {
-                            viewModel.addLure(
-                                name: name,
-                                color: color,
-                                category: category,
-                                weightGrams: weightGrams,
-                                imageData: imageData
-                            )
-
-                            dismiss()
-                        } label: {
-                            Text("Save Lure")
-                                .fontWeight(.bold)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(name.trimmingCharacters(in: .whitespaces).isEmpty ? Color.gray : Color.cyan)
-                                .foregroundColor(.black)
-                                .clipShape(RoundedRectangle(cornerRadius: 18))
-                        }
-                        .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                        .foregroundStyle(.white)
+                        
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
+                    
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 18) {
+                            PhotoPickerView(imageData: $imageData)
+                            
+                            SectionTitle("Tackle")
+                            Picker("Category", selection: $category) {
+                                ForEach(LureCategory.allCases) { category in
+                                    Text(category.rawValue).tag(category)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                            
+                            SectionTitle("Name and Color")
+                            TextField("Name", text: $name)
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .padding(12)
+                                .background(.white.opacity(0.1))
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .overlay(content: {
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(lineWidth: 1)
+                                        .foregroundStyle(.white.opacity(0.2))
+                                })
+                            
+                            TextField("Color", text: $color)
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .padding(12)
+                                .background(.white.opacity(0.1))
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .overlay(content: {
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(lineWidth: 1)
+                                        .foregroundStyle(.white.opacity(0.2))
+                                })
+                            
+                            SectionTitle("Weight: \(oneDigit(weightGrams))g")
+                            Slider(value: $weightGrams, in: 1...80, step: 1)
+                            
+                            Button {
+                                viewModel.addLure(
+                                    name: name,
+                                    color: color,
+                                    category: category,
+                                    weightGrams: weightGrams,
+                                    imageData: imageData
+                                )
+                                
+                                dismiss()
+                            } label: {
+                                Text("Save Lure")
+                                    .fontWeight(.bold)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(name.trimmingCharacters(in: .whitespaces).isEmpty ? Color.gray : Color.cyan)
+                                    .foregroundColor(.black)
+                                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                            }
+                            .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                        }
+                        .padding()
+                    }
                 }
             }
-            .navigationTitle("Add Lure")
-            .navigationBarTitleDisplayMode(.inline)
+            
         }
     }
 }
@@ -885,12 +995,20 @@ struct SmartAdvisorView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Smart Advisor")
-                                .font(.title2)
-                                .fontWeight(.bold)
-
+                            HStack {
+                                Image(.advisorIconSC)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 32)
+                                
+                                Text("Smart Advisor")
+                                    .font(.system(size: 24, weight: .bold))
+                                    .foregroundStyle(.white)
+                            }
+                            
                             Text("AI-powered lure recommendations")
-                                .foregroundColor(.secondary)
+                                .font(.system(size: 16, weight: .regular))
+                                .foregroundStyle(.white.opacity(0.6))
                         }
 
                         SectionTitle("Target Fish")
@@ -925,7 +1043,7 @@ struct SmartAdvisorView: View {
                             }
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.cyan)
+                            .background(Color.tabAccent)
                             .foregroundColor(.black)
                             .clipShape(RoundedRectangle(cornerRadius: 18))
                         }
@@ -949,9 +1067,9 @@ struct SmartAdvisorView: View {
                         }
                     }
                     .padding()
+                    .padding(.bottom, 150)
                 }
             }
-            .navigationTitle("Smart Advisor")
         }
     }
 }
@@ -961,19 +1079,20 @@ struct RecommendationCard: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            AppImageView(data: recommendation.lure.imageData, placeholder: "scope", size: 58)
+            AppImageView(data: recommendation.lure.imageData, placeholder: "scope", size: 58, showText: false)
 
             VStack(alignment: .leading, spacing: 5) {
                 Text(recommendation.lure.name)
-                    .font(.headline)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.white)
 
                 Text(recommendation.reason)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundStyle(.white.opacity(0.6))
 
                 Text(recommendation.lure.category.rawValue)
-                    .font(.caption2)
-                    .foregroundColor(.cyan)
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundStyle(.white.opacity(0.6))
             }
 
             Spacer()
@@ -983,7 +1102,7 @@ struct RecommendationCard: View {
                 .fontWeight(.bold)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
-                .background(Color.cyan)
+                .background(Color.tabAccent)
                 .foregroundColor(.black)
                 .clipShape(Capsule())
         }
@@ -1002,63 +1121,78 @@ struct AnalyticsView: View {
         NavigationStack {
             ZStack {
                 AppBackground()
-
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 18) {
+                
+                VStack {
+                    
+                    VStack(alignment: .leading) {
                         Text("Fishing Analytics")
-                            .font(.title2)
-                            .fontWeight(.bold)
-
-                        HStack {
-                            StatCard(title: "Biggest Pike", value: biggestText)
-                            StatCard(title: "Best Day", value: "\(viewModel.totalCatches)")
-                        }
-
-                        HStack {
-                            StatCard(title: "Most Productive", value: viewModel.mostProductiveMonth)
-                            StatCard(title: "Best Weather", value: viewModel.bestWeather?.rawValue ?? "No data")
-                        }
-
-                        SectionTitle("Catch Weight by Month")
-                        SimpleBarChart(data: viewModel.monthlyWeights())
-
-                        SectionTitle("Most Successful Lures")
-
-                        let topLures = viewModel.topLures()
-
-                        if topLures.isEmpty {
-                            EmptyStateView(
-                                title: "No lure statistics",
-                                subtitle: "Statistics will appear after saving catches."
-                            )
-                        } else {
-                            ForEach(topLures, id: \.lure.id) { item in
-                                HStack {
-                                    AppImageView(data: item.lure.imageData, placeholder: "scope", size: 46)
-
-                                    VStack(alignment: .leading) {
-                                        Text(item.lure.name)
-                                            .font(.headline)
-                                        Text(item.lure.category.rawValue)
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundStyle(.white)
+                        Text("Know what really works")
+                            .font(.system(size: 16, weight: .regular))
+                            .foregroundStyle(.white.opacity(0.6))
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                    
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 18) {
+                            HStack {
+                                StatGradientCard(color1: .pike1.opacity(0.2), color2: .pike2.opacity(0.2), icon: "pikeIcon", title: "Biggest Pike", value: biggestText)
+                                
+                                StatGradientCard(color1: .fishing1.opacity(0.2), color2: .pike1.opacity(0.2), icon: "fishingIcon", title: "Best Fishing Day", value: "\(viewModel.totalCatches)")
+                                
+                            }
+                            
+                            HStack {
+                                StatGradientCard(color1: .pike1.opacity(0.2), color2: .most1.opacity(0.2), icon: "productiveIcon", title: "Most Productive", value: viewModel.mostProductiveMonth)
+                                
+                                StatGradientCard(color1: .most1.opacity(0.2), color2: .weather1.opacity(0.2), icon: "weatherIcon", title: "Best Weather", value: viewModel.bestWeather?.rawValue ?? "No data")
+                                
+                            }
+                            
+                            SectionTitle("Catch Weight by Month")
+                            SimpleBarChart(data: viewModel.monthlyWeights())
+                            
+                            SectionTitle("Most Successful Lures")
+                            
+                            let topLures = viewModel.topLures()
+                            
+                            if topLures.isEmpty {
+                                EmptyStateView(
+                                    title: "No lure statistics",
+                                    subtitle: "Statistics will appear after saving catches."
+                                )
+                            } else {
+                                ForEach(topLures, id: \.lure.id) { item in
+                                    HStack {
+                                        AppImageView(data: item.lure.imageData, placeholder: "scope", size: 46, showText: false)
+                                        
+                                        VStack(alignment: .leading) {
+                                            Text(item.lure.name)
+                                                .font(.headline)
+                                                .foregroundStyle(.white)
+                                            Text(item.lure.category.rawValue)
+                                                .font(.caption)
+                                                .foregroundColor(.white.opacity(0.6))
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Text("\(item.count) catches")
+                                            .foregroundColor(.tabAccent)
                                     }
-
-                                    Spacer()
-
-                                    Text("\(item.count) catches")
-                                        .foregroundColor(.cyan)
+                                    .padding()
+                                    .background(Color.white.opacity(0.08))
+                                    .clipShape(RoundedRectangle(cornerRadius: 16))
                                 }
-                                .padding()
-                                .background(Color.white.opacity(0.08))
-                                .clipShape(RoundedRectangle(cornerRadius: 16))
                             }
                         }
+                        .padding()
+                        .padding(.bottom, 150)
                     }
-                    .padding()
                 }
             }
-            .navigationTitle("Analytics")
         }
     }
 
@@ -1088,7 +1222,7 @@ struct SimpleBarChart: View {
 
                     Text(item.month)
                         .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white.opacity(0.6))
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -1115,14 +1249,14 @@ struct ProfileView: View {
                         VStack(spacing: 12) {
                             Image(systemName: "person.circle.fill")
                                 .font(.system(size: 90))
-                                .foregroundColor(.cyan)
+                                .foregroundColor(.tabAccent)
 
                             Text("Angler Pro")
-                                .font(.title)
-                                .fontWeight(.bold)
-
+                                .font(.system(size: 30, weight: .bold))
+                                .foregroundStyle(.white)
+                            
                             Text("Master Fisher")
-                                .font(.caption)
+                                .font(.system(size: 14, weight: .semibold))
                                 .padding(.horizontal, 14)
                                 .padding(.vertical, 6)
                                 .background(Color.yellow.opacity(0.2))
@@ -1133,13 +1267,11 @@ struct ProfileView: View {
                                 .tint(.cyan)
 
                             Text("Level \(max(1, viewModel.totalCatches / 5 + 1))")
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.white)
                         }
                         .padding()
-                        .background(Color.white.opacity(0.08))
-                        .clipShape(RoundedRectangle(cornerRadius: 22))
 
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
                             ProfileStatCard(icon: "fish", value: "\(viewModel.totalCatches)", title: "Total Catches")
                             ProfileStatCard(icon: "scope", value: "\(viewModel.lures.count)", title: "Lures Owned")
                             ProfileStatCard(icon: "trophy", value: "\(min(viewModel.totalCatches, 12))", title: "Day Streak")
@@ -1148,40 +1280,38 @@ struct ProfileView: View {
 
                         if let lure = viewModel.mostSuccessfulLure {
                             HStack {
-                                AppImageView(data: lure.imageData, placeholder: "scope", size: 58)
+                                AppImageView(data: lure.imageData, placeholder: "scope", size: 58, showText: false)
 
                                 VStack(alignment: .leading) {
                                     Text("Most Successful Lure")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .font(.system(size: 14, weight: .regular))
+                                        .foregroundStyle(.white.opacity(0.6))
 
                                     Text(lure.name)
-                                        .font(.headline)
+                                        .font(.system(size: 20, weight: .bold))
+                                        .foregroundStyle(.white)
 
                                     Text("\(viewModel.successCount(for: lure.id)) catches")
-                                        .foregroundColor(.secondary)
+                                        .font(.system(size: 16, weight: .regular))
+                                        .foregroundStyle(.white.opacity(0.6))
                                 }
 
                                 Spacer()
                             }
                             .padding()
-                            .background(Color.cyan.opacity(0.15))
+                            .background(Color.white.opacity(0.15))
                             .clipShape(RoundedRectangle(cornerRadius: 18))
                         }
 
-                        Toggle("Offline Mode", isOn: $viewModel.isOfflineMode)
-                            .padding()
-                            .background(Color.white.opacity(0.08))
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
 
                         Text("Smart Catch v1.0.0")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundStyle(.white.opacity(0.4))
                     }
                     .padding()
+                    .padding(.bottom, 150)
                 }
             }
-            .navigationTitle("Profile")
         }
     }
 }
@@ -1194,20 +1324,20 @@ struct ProfileStatCard: View {
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(.cyan)
+                .font(.system(size: 30, weight: .bold))
+                .foregroundStyle(.tabAccent)
 
             Text(value)
-                .font(.title2)
-                .fontWeight(.bold)
+                .font(.system(size: 30, weight: .bold))
+                .foregroundStyle(.white)
                 .lineLimit(1)
 
             Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .font(.system(size: 14, weight: .regular))
+                .foregroundStyle(.white.opacity(0.6))
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 120)
+        .padding(.vertical, 20)
         .background(Color.white.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 18))
     }
@@ -1222,16 +1352,10 @@ struct PhotoPickerView: View {
     var body: some View {
         PhotosPicker(selection: $selectedItem, matching: .images) {
             VStack(spacing: 10) {
-                AppImageView(data: imageData, placeholder: "camera", size: 120)
-
-                Text("Tap to add photo")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                AppImageView(data: imageData, placeholder: "camera", size: 220)
+                
             }
             .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.white.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: 18))
         }
         .onChange(of: selectedItem) { newItem in
             Task {
@@ -1251,15 +1375,44 @@ struct PhotoPickerView: View {
 
 struct AppBackground: View {
     var body: some View {
-        LinearGradient(
-            colors: [
-                Color(red: 0.02, green: 0.07, blue: 0.11),
-                Color(red: 0.02, green: 0.25, blue: 0.27)
-            ],
-            startPoint: .top,
-            endPoint: .bottom
-        )
-        .ignoresSafeArea()
+        Image(.appBgSC)
+            .resizable()
+            .ignoresSafeArea()
+    }
+}
+
+struct StatGradientCard: View {
+    let color1: Color
+    let color2: Color
+    let icon: String
+    let title: String
+    let value: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            
+            Image(icon)
+                .resizable()
+                .scaledToFit()
+                .frame(height: 32)
+            
+            Text(value)
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(.white)
+
+            Text(title)
+                .font(.system(size: 14, weight: .regular))
+                .foregroundColor(.white.opacity(0.6))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(LinearGradient(colors: [color1, color2], startPoint: .topLeading, endPoint: .bottomTrailing))
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .overlay {
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(lineWidth: 1)
+                .foregroundStyle(Color.white.opacity(0.2))
+        }
     }
 }
 
@@ -1270,18 +1423,23 @@ struct StatCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(value)
-                .font(.title2)
+                .font(.system(size: 36, weight: .bold))
                 .fontWeight(.bold)
-                .foregroundColor(.cyan)
+                .foregroundColor(.tabAccent)
 
             Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(.white.opacity(0.7))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .background(Color.white.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .background(Color.white.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .overlay {
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(lineWidth: 1)
+                .foregroundStyle(Color.white.opacity(0.2))
+        }
     }
 }
 
@@ -1294,7 +1452,8 @@ struct SectionTitle: View {
 
     var body: some View {
         Text(title)
-            .font(.headline)
+            .font(.system(size: 16, weight: .semibold))
+            .foregroundStyle(.white.opacity(0.8))
     }
 }
 
@@ -1306,10 +1465,11 @@ struct EmptyStateView: View {
         VStack(spacing: 8) {
             Text(title)
                 .font(.headline)
+                .foregroundStyle(.white)
 
             Text(subtitle)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(.white.opacity(0.6))
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
@@ -1332,11 +1492,12 @@ struct InfoRow: View {
 
             VStack(alignment: .leading) {
                 Text(title)
-                    .font(.headline)
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundStyle(.white)
 
                 Text(subtitle)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundStyle(.white.opacity(0.6))
             }
 
             Spacer()
@@ -1348,7 +1509,8 @@ struct AppImageView: View {
     let data: Data?
     let placeholder: String
     let size: CGFloat
-
+    var showText: Bool = true
+    
     var body: some View {
         Group {
             if let data, let uiImage = UIImage(data: data) {
@@ -1356,14 +1518,21 @@ struct AppImageView: View {
                     .resizable()
                     .scaledToFill()
             } else {
-                Image(systemName: placeholder)
-                    .font(.system(size: size * 0.35))
-                    .foregroundColor(.cyan)
+                VStack {
+                    Image(systemName: placeholder)
+                        .font(.system(size: size * 0.2))
+                        
+                    if showText {
+                        Text("Tap to add photo")
+                            .font(.system(size: 16, weight: .regular))
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                }.foregroundColor(.cyan)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color.cyan.opacity(0.12))
             }
         }
-        .frame(width: size, height: size)
+        .frame(width: size * 1.5, height: size)
         .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 }
@@ -1380,7 +1549,7 @@ struct CategoryChip: View {
                 .fontWeight(.semibold)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 9)
-                .background(isSelected ? Color.cyan : Color.white.opacity(0.12))
+                .background(isSelected ? Color.tabAccent : Color.white.opacity(0.12))
                 .foregroundColor(isSelected ? .black : .white)
                 .clipShape(Capsule())
         }
@@ -1404,14 +1573,23 @@ struct ChipGrid: View {
                 Button {
                     onSelect(item)
                 } label: {
-                    Text(item)
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(selected == item ? Color.cyan : Color.white.opacity(0.12))
-                        .foregroundColor(selected == item ? .black : .white)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    VStack {
+                        Text(item)
+                            .font(.caption)
+                            .fontWeight(.semibold)
+
+                    }
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(selected == item ? .tabAccent: .white.opacity(0.7))
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .background(selected == item ? .tabAccent.opacity(0.2) : .white.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .overlay(content: {
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(lineWidth: 1)
+                            .foregroundStyle(selected == item ? .tabAccent : .white.opacity(0.2))
+                    })
                 }
             }
         }

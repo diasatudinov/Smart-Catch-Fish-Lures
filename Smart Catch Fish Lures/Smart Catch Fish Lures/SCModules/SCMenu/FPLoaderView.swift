@@ -1,13 +1,20 @@
+//
+//  FPLoaderView.swift
+//  Smart Catch Fish Lures
+//
+//
+
+
 import SwiftUI
 
-struct FPLoaderView: View {
+struct SCLoaderView: View {
     @State private var scale: CGFloat = 1.0
     @State private var progress: CGFloat = 0.0
     @State private var timer: Timer?
     var body: some View {
         ZStack {
             ZStack {
-                Image("FPLoaderImage")
+                Image("SCLoaderImage")
                     .resizable()
                     .ignoresSafeArea()
                     .scaledToFill()
@@ -18,7 +25,7 @@ struct FPLoaderView: View {
             
             VStack(spacing: 0) {
                 
-                Image("FPLoaderImage")
+                Image("SCLoaderImage")
                     .resizable()
                     .scaledToFit()
                     .frame(height: 200)
@@ -75,5 +82,5 @@ struct FPLoaderView: View {
 
 
 #Preview {
-    FPLoaderView()
+    SCLoaderView()
 }
