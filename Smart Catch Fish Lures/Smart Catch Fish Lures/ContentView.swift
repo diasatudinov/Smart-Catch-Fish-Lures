@@ -2,7 +2,6 @@
 //  ContentView.swift
 //  Smart Catch Fish Lures
 //
-//  Created by Dias Atudinov on 19.05.2026.
 //
 
 import SwiftUI
