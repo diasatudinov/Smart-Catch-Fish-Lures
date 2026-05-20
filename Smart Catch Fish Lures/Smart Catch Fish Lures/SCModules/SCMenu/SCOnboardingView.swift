@@ -1,42 +1,41 @@
 //
-//  FAOnboardingView.swift
+//  SCOnboardingView.swift
 //  Smart Catch Fish Lures
 //
-//  Created by Dias Atudinov on 20.05.2026.
 //
 
 
 import SwiftUI
 
-struct FAOnboardingView: View {
+struct SCOnboardingView: View {
     var getStartBtnTapped: () -> ()
         @State var count = 0
         
         var onbIcon: Image {
             switch count {
             case 0:
-                Image(.onboardingIcon1FA)
+                Image(.onboardingIcon1SC)
             case 1:
-                Image(.onboardingIcon2FA)
+                Image(.onboardingIcon2SC)
             case 2:
-                Image(.onboardingIcon3FA)
+                Image(.onboardingIcon3SC)
             case 3:
-                Image(.onboardingIcon4FA)
+                Image(.onboardingIcon4SC)
             default:
-                Image(.onboardingIcon1FA)
+                Image(.onboardingIcon1SC)
             }
         }
         
         var onbTitle: String {
             switch count {
             case 0:
-                "Your Aquarium. Under\nControl."
+                "Your Perfect Lure.\nYour Best Catch."
             case 1:
-                "Track What Matters"
+                "Track Every Trophy"
             case 2:
-                "Never Miss a Task"
+                "AI-Based Lure\nSuggestions"
             case 3:
-                "Start Your Aquarium Journey"
+                "Know What Really\nWorks"
             default:
                 "Spin Your Meals"
             }
@@ -45,13 +44,13 @@ struct FAOnboardingView: View {
         var onbDescription: String {
             switch count {
             case 0:
-                "Track your fish, water, and care routines in\none place"
+                "Track your fishing journey with\nintelligent insights"
             case 1:
-                "Monitor water parameters and fish health\nwith ease"
+                "Log catches with photos, weather, and\nsuccessful lures"
             case 2:
-                "Get smart reminders for feeding, cleaning,\nand care"
+                "Get smart recommendations based on\nconditions"
             case 3:
-                "Add your first fish and build your perfect\necosystem"
+                "Analytics show your most successful\npatterns"
             default:
                 ""
             }
@@ -60,34 +59,19 @@ struct FAOnboardingView: View {
         var body: some View {
             VStack {
                 
-                HStack {
-                                        
-                    if count == 0 {
-                        Button {
-                            getStartBtnTapped()
-                        } label: {
-                            Text("Skip")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundStyle(.white.opacity(0.7))
-                        }
-                        .buttonStyle(.plain)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                    }
-                }
-                .padding(.trailing, 40)
-                
                 Spacer()
                 
                 onbIcon
                     .resizable()
                     .scaledToFit()
-                    .padding(.horizontal, count % 2 == 0 ? 52 : 36)
+                    .padding(.horizontal, 60)
                 
                 VStack(spacing: 16) {
                     Text(onbTitle)
-                        .font(.system(size: 24, weight: .medium))
+                        .font(.system(size: 30, weight: .bold))
                         .multilineTextAlignment(.center)
                         .foregroundStyle(.white)
+                        .frame(height: 72)
                     
                     Text(onbDescription)
                         .font(.system(size: 16, weight: .regular))
@@ -106,9 +90,9 @@ struct FAOnboardingView: View {
                     
                     HStack {
                         if count == 0 {
-                            Circle()
-                                .fill(.yellow)
-                                .frame(width: 10, height: 10)
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(.tabAccent)
+                                .frame(width: 32, height: 8)
                                 
                         } else {
                             Circle()
@@ -118,9 +102,9 @@ struct FAOnboardingView: View {
                         
                         
                         if count == 1 {
-                            Circle()
-                                .fill(.yellow)
-                                .frame(width: 10, height: 10)
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(.tabAccent)
+                                .frame(width: 32, height: 8)
 
                         } else {
                             Circle()
@@ -129,10 +113,9 @@ struct FAOnboardingView: View {
                         }
                         
                         if count == 2 {
-                            Circle()
-                                .fill(.yellow)
-                                .frame(width: 10, height: 10)
-                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(.tabAccent)
+                                .frame(width: 32, height: 8)
                         } else {
                             Circle()
                                 .fill(.white.opacity(0.2))
@@ -140,16 +123,16 @@ struct FAOnboardingView: View {
                         }
                         
                         if count == 3 {
-                            Circle()
-                                .fill(.yellow)
-                                .frame(width: 10, height: 10)
-                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(.tabAccent)
+                                .frame(width: 32, height: 8)
                         } else {
                             Circle()
                                 .fill(.white.opacity(0.2))
                                 .frame(width: 10, height: 10)
                         }
                     }
+                    .padding(.bottom, 24)
                     
                     VStack(spacing: 16) {
                         
@@ -161,31 +144,49 @@ struct FAOnboardingView: View {
                                 getStartBtnTapped()
                             }
                         } label: {
-                            Image(count < 3 ? .nextBtnFA : .getStartedBtnFA)
-                                .resizable()
-                                .scaledToFit()
-                                .padding(.horizontal, 24)
-                        }
-                        
-                        if count == 3 {
-                            Button {
-                                getStartBtnTapped()
-                            } label: {
-                                Text("Skip")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundStyle(.white.opacity(0.7))
+                            HStack {
+                                Text(count != 3 ? "Continue" : "Enter The Water")
+                                    .fontWeight(.bold)
                             }
-                            .buttonStyle(.plain)
-                            .frame(maxWidth: .infinity, alignment: .center)
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(.black)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.cyan)
+                            .clipShape(RoundedRectangle(cornerRadius: 50))
+                            .padding(.horizontal, 32)
+                        }
+                        VStack {
+                            if count != 3 {
+                                Button {
+                                    getStartBtnTapped()
+                                } label: {
+                                    Text("Skip")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundStyle(.white.opacity(0.7))
+                                }
+                                .buttonStyle(.plain)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                            } else {
+                                Text("Skip")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(.white.opacity(0.7))
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .opacity(0)
+                            }
+                            
                         }
                     }
+                    .padding(.bottom, 32)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             .background(
-                Image(.onboardingBgFA)
+                Image(.appBgSC)
                     .resizable()
+                    .padding(-4)
                     .ignoresSafeArea()
+                    
             )
         }
         
@@ -207,5 +208,5 @@ struct FAOnboardingView: View {
     }
 
 #Preview {
-    FAOnboardingView(getStartBtnTapped: {})
+    SCOnboardingView(getStartBtnTapped: {})
 }

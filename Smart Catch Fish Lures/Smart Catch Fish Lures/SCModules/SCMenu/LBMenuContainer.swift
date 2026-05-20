@@ -8,11 +8,19 @@
 import SwiftUI
 
 struct SCMenuContainer: View {
-    @AppStorage("firstOpenBB") var firstOpen: Bool = true
+    @AppStorage("firstOpenSC") var firstOpen: Bool = true
     
     var body: some View {
         NavigationStack {
-            SCMenuView()
+            ZStack {
+                if firstOpen {
+                    SCOnboardingView(getStartBtnTapped: {
+                        firstOpen = false
+                    })
+                } else {
+                    SCMenuView()
+                }
+            }
         }
     }
 }
